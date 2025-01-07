@@ -5,8 +5,8 @@ const passport = require('passport');
 
 const authentication = passport.authenticate("jwt", { session: false});
 
-router.get('/',authentication, commentController.getAllComment);
-router.delete('/:id',authentication, commentController.deleteComment);
+router.get('/', commentController.getAllComment);
+router.delete('/:id', commentController.deleteComment);
 router.post('/addcomment', commentController.createComment);
 
 module.exports = router;

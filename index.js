@@ -1,5 +1,6 @@
 require('dotenv').config();
 const db = require('./models');
+const path = require('path');
 
 const express = require('express');
 const app = express();
@@ -17,7 +18,11 @@ const passport = require('passport');
 
 require('./config/passport/passport');// run jwt
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000', // ระบุโดเมนของ frontend
+    methods: ['GET', 'POST'],
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -27,6 +32,7 @@ app.use('/actor', actorRoutes);
 app.use('/comment', commentRoutes);
 app.use('/playlist', playlistRoutes);
 app.use('/genre', genreRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 db.sequelize.sync({ force: false}).then(() => {
     app.listen(port, () => {

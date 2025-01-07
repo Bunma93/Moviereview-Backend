@@ -136,7 +136,27 @@ const registerUser = async (req, res) => {
         }
     };
 
+const getUserById = async (req, res) => {
+   try {
+        // ค้นหาผู้ใช้จากฐานข้อมูลตาม id
+        const targetUser = await db.User.findOne({ where: { id: req.user.id } });
+
+        // ถ้าไม่พบผู้ใช้ ให้ส่งกลับด้วยสถานะ 404
+        if (!targetUser) {
+            return res.status(404).send({ message: 'User not found' });
+        }
+
+        // ถ้าพบผู้ใช้ ให้ส่งข้อมูลกลับไป
+        res.status(200).send(targetUser);
+    } catch (error) {
+        // จัดการข้อผิดพลาดและส่งกลับด้วยสถานะ 500
+        console.error(error);
+        res.status(500).send({ message: 'An error occurred', error: error.message });
+    }
+};
+
 module.exports = {
     loginUser,
-    registerUser
+    registerUser,
+    getUserById
 }
