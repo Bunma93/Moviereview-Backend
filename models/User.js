@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
         username: {
             type: DataTypes.STRING(255),
             allowNull: false,
-            unique: true
+            unique: { name: "custom_username_unique" }, // ป้องกันการสร้าง Index ซ้ำ
         },
         name: {
             type: DataTypes.STRING(255),
@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         email: {
             type: DataTypes.STRING(255),
             allowNull: false,   
-            unique: true,       
+            unique: { name: "custom_email_unique" },       
             validate: {
                 isEmail: true
             }

@@ -34,7 +34,7 @@ app.use('/playlist', playlistRoutes);
 app.use('/genre', genreRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-db.sequelize.sync({ force: false}).then(() => {
+db.sequelize.sync({ alter: false }).then(() => {
     app.listen(port, () => {
         console.log(`Server is Running at port ${port}`);
     })

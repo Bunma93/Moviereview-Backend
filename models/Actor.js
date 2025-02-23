@@ -8,6 +8,17 @@ module.exports = (sequelize, DataTypes) => {
         birthdate: {
             type: DataTypes.DATEONLY
         },
+        country: {
+            type: DataTypes.STRING
+        },
+        role: {
+            type: DataTypes.ENUM('director', 'actor'),
+            allowNull: false,
+        },
+        actorimagePath: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
     }, {
         tableName: "actors",
         timestamps: false,

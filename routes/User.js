@@ -10,6 +10,4 @@ router.post('/register',upload.single('userimagePath'), userControllers.register
 router.post('/login', userControllers.loginUser);
 router.get('/profile', authentication, userControllers.getUserById);
 
-
-
 module.exports = router;

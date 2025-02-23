@@ -39,6 +39,20 @@ const createMovies = async (req, res) => {
 
         res.status(201).json({ message: "เพิ่มภาพยนตร์สำเร็จ!", movie: newMovie });
     } catch (error) {
+        if (req.files['posterimagePath']) {
+            try {
+                fs.unlinkSync(req.files['posterimagePath'][0].path);  // ลบไฟล์โปสเตอร์
+            } catch (fsError) {
+                console.error("Error deleting poster image file: ", fsError);
+            }
+        }
+        if (req.files['backgroundimagePath']) {
+            try {
+                fs.unlinkSync(req.files['backgroundimagePath'][0].path);  // ลบไฟล์พื้นหลัง
+            } catch (fsError) {
+                console.error("Error deleting background image file: ", fsError);
+            }
+        }
         console.error("เกิดข้อผิดพลาด:", error);
         res.status(500).json({ message: "เกิดข้อผิดพลาดในการเพิ่มภาพยนตร์" });
     }

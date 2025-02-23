@@ -4,11 +4,13 @@ const path = require('path');
 // ตั้งค่า Storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    if (file.fieldname === 'profileImage') {
+    if (file.fieldname === 'userimagePath') {
       cb(null, 'uploads/profiles/'); // อัปโหลดรูปโปรไฟล์ไปที่โฟลเดอร์ profiles
     } else if (file.fieldname === 'posterimagePath' || file.fieldname === 'backgroundimagePath') {
       cb(null, 'uploads/movies/'); // อัปโหลดภาพหนังไปที่โฟลเดอร์ movies
-    } else {
+    } else if (file.fieldname === 'actorimagePath') {
+      cb(null, 'uploads/actors/'); // อัปโหลดภาพหนังไปที่โฟลเดอร์ movies
+    }else {
       cb(null, 'uploads/others/'); // เผื่อไว้สำหรับไฟล์อื่น ๆ
     }
   },
