@@ -20,7 +20,8 @@ require('./config/passport/passport');// run jwt
 
 app.use(cors({
     origin: 'http://localhost:3000', // ระบุโดเมนของ frontend
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // ✅ อนุญาต DELETE ด้วย
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
