@@ -5,11 +5,14 @@ module.exports = (sequelize, DataTypes) => {
         title: {
             type: DataTypes.STRING(255),
         },
+        engTitle: {
+            type: DataTypes.STRING(255),
+        },
         date: {
             type: DataTypes.DATEONLY
         },
         description: {
-            type: DataTypes.TEXT
+            type: DataTypes.TEXT('long')
         },
         Atcinema : {
             type: DataTypes.STRING(10)
@@ -19,16 +22,29 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         backgroundimagePath: {
-            type: DataTypes.STRING,
+            type: DataTypes.JSON,
             allowNull: true
         },
+        age: {
+            type: DataTypes.TEXT
+        },
+        lang: {
+            type: DataTypes.JSON
+        },
+        trailerUrl: {
+            type: DataTypes.TEXT
+        },
+        rank: {
+            type: DataTypes.INTEGER, 
+            allowNull: true 
+        }
     }, {
         tableName: "movies",
         timestamps: false,
     });
 
     Movie.associate = (models) => {
-        Movie.belongsToMany(models.User, { through: models.Comment});
+        Movie.hasMany(models.Comment, { foreignKey: "MovieId" });
         Movie.belongsToMany(models.User, { through: models.Playlist});
         Movie.belongsToMany(models.User, { through: models.Search});
         Movie.belongsToMany(models.Actor, { through: models.Act});

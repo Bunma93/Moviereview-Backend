@@ -10,7 +10,7 @@ const loginUser = async (req, res) => {
 
         // ตรวจสอบว่ามีการส่ง username และ password มาหรือไม่
         if (!username || !password) {
-            return res.status(400).send({ message: "Username and password are required" });
+            return res.status(400).send({ message: "ต้องการ Username และ password" });
         }
 
         // หาผู้ใช้จากฐานข้อมูล
@@ -18,7 +18,7 @@ const loginUser = async (req, res) => {
 
         // ถ้าไม่มีผู้ใช้
         if (!targetUser) {
-            return res.status(400).send({ message: "Username or password is wrong" });
+            return res.status(400).send({ message: "Username หรือ password ผิดพลาด" });
         }
 
         // ตรวจสอบรหัสผ่าน
@@ -43,12 +43,12 @@ const loginUser = async (req, res) => {
             });
         } else {
             // ถ้ารหัสผ่านไม่ถูกต้อง
-            return res.status(400).send({ message: "Username or password is wrong" });
+            return res.status(400).send({ message: "Username หรือ password ผิดพลาด" });
         }
     } catch (error) {
         // จัดการข้อผิดพลาดทั่วไป
         console.error("Login error: ", error);
-        return res.status(500).send({ message: "Something went wrong. Please try again later." });
+        return res.status(500).send({ message: "เกิดความผิดปกติบางอย่าง โปรดลองใหม่อีกครั้งภายหลัง" });
     }
 }
 const registerUser = async (req, res) => {
@@ -64,31 +64,31 @@ const registerUser = async (req, res) => {
             // ตรวจสอบว่าข้อมูลครบถ้วน
             if (!username || !name || !email || !password || !tel || !age) {
                 if (userimagePath) fs.unlinkSync(userimagePath); // ลบไฟล์ออก
-                return res.status(400).send({ message: "All fields are required" });
+                return res.status(400).send({ message: "กรุณากรอกข้อมูลให้ครบ" });
             }
 
             // ตรวจสอบรูปแบบ email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 if (userimagePath) fs.unlinkSync(userimagePath); // ลบไฟล์ออก
-                return res.status(400).send({ message: "Invalid email format" });
+                return res.status(400).send({ message: "รูปแบบ Email ไม่ถูกต้อง" });
             }
 
             if (targetUser) {
                 // ลบรูปที่อัปโหลดในกรณี Username ซ้ำ
                 if (userimagePath) fs.unlinkSync(userimagePath); // ลบไฟล์ออก
-                return res.status(400).send({ message: "Username already taken" });
+                return res.status(400).send({ message: "Username นี้ถูกใช้แล้ว" });
               }
           
             if (targetEmail) {
                 // ลบรูปที่อัปโหลดในกรณี Email ซ้ำ
                 if (userimagePath) fs.unlinkSync(userimagePath);
-            return res.status(400).send({ message: "Email already taken" });
+            return res.status(400).send({ message: "Email นี้ถูกใช้แล้ว" });
             }
             // ตรวจสอบความยาวของ password
             if (password.length < 8) {
                 if (userimagePath) fs.unlinkSync(userimagePath); // ลบไฟล์ออก
-                return res.status(400).send({ message: "Password must be at least 8 characters" });
+                return res.status(400).send({ message: "Password ต้องมีอย่างน้อย 8 ตัวอักษร" });
             }
                 //สร้าง salt
                 const salt = bcryptjs.genSaltSync(12);
@@ -115,7 +115,7 @@ const registerUser = async (req, res) => {
                 const token = jwt.sign(payload, process.env.JWT_SECRET || process.env.SECRET_OR_KEY, { expiresIn: 3600 });
     
                 return res.status(201).send({ 
-                    message: "User created successfully",
+                    message: "สร้างบัญชีผู้ใช้งานสำเร็จ",
                     token: token,
                     user: {
                         id: newUser.id,
@@ -132,7 +132,7 @@ const registerUser = async (req, res) => {
                 }
             }
             console.error("Error during registration: ", error);
-            return res.status(500).send({ message: "Something went wrong. Please try again later." });
+            return res.status(500).send({ message: "เกิดความผิดปกติบางอย่าง โปรดลองใหม่อีกครั้งภายหลัง" });
         }
     };
 

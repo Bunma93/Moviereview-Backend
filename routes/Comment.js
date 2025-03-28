@@ -7,6 +7,6 @@ const authentication = passport.authenticate("jwt", { session: false});
 
 router.get('/', commentController.getAllComment);
 router.delete('/:id', commentController.deleteComment);
-router.post('/addcomment', commentController.createComment);
+router.post('/addcomment',authentication , commentController.createComment);
 
 module.exports = router;
