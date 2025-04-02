@@ -16,7 +16,7 @@ const getActorByID = async (req, res) => {
                 {
                     model: db.Movie,
                     through: { attributes: [] },
-                    attributes: ['id', 'title']
+                    attributes: ['id', 'title',]
                 }
             ]
         });
@@ -146,6 +146,16 @@ const updateActors = async (req, res) => {
          if (!Array.isArray(parsedMovieIds)) {
              return res.status(400).json({ message: "movieIds ต้องเป็นอาร์เรย์" });
          }
+
+         if (Array.isArray(parsedMovieIds)) {
+            parsedMovieIds = parsedMovieIds.flatMap(item => {
+                try {
+                    return JSON.parse(item); // แปลง JSON string เป็นอาร์เรย์จริง
+                } catch (error) {
+                    return item.split(',').map(Number); // แยก string แล้วแปลงเป็นตัวเลข
+                }
+            });
+        }
  
          // ✅ เช็คว่ามีหนังที่เลือกหรือไม่
          if (parsedMovieIds.length > 0) {

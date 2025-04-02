@@ -1,3 +1,5 @@
+const { all } = require("axios");
+
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define(
         'User', 
@@ -38,6 +40,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         userimagePath: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        userBackgroundImagePath: {
             type: DataTypes.STRING,
             allowNull: true
         }

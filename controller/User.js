@@ -53,10 +53,15 @@ const loginUser = async (req, res) => {
 }
 const registerUser = async (req, res) => {
     let userimagePath = null;
+    let userBackgroundImagePath = null; // ✅ กำหนดตัวแปรไว้ก่อน
 
     try {
             const { username, name, email, password, tel, age, } = req.body;
-            const userimagePath = req.file ? req.file.path : null; // ดึง path ของรูปภาพที่อัปโหลด
+            userimagePath = req.file ? req.file.path : null; // ดึง path ของรูปภาพที่อัปโหลด
+            if (req.files && req.files['userBackgroundImagePath']) {
+                userBackgroundImagePath = req.files['userBackgroundImagePath'][0].path;
+            }
+
             //เช็คว่าใช้ user ไปรึยัง
             const targetUser = await db.User.findOne({where: { username: username} });
             const targetEmail = await db.User.findOne({where: { email: email} });
@@ -102,7 +107,8 @@ const registerUser = async (req, res) => {
                     email: email.trim(),
                     tel: tel.trim(),
                     age: parseInt(age),
-                    userimagePath: userimagePath
+                    userimagePath: userimagePath,
+                    userBackgroundImagePath
                 });
         
                 const payload = {
@@ -124,12 +130,15 @@ const registerUser = async (req, res) => {
                     }
                  });
         } catch (error) {
-            if (userimagePath) {
-                try {
-                    fs.unlinkSync(userimagePath);
-                } catch (fsError) {
-                    console.error("Error deleting file: ", fsError);
-                }
+           try {
+            if (userimagePath && fs.existsSync(userimagePath)) {
+                fs.unlinkSync(userimagePath);
+            }
+            if (userBackgroundImagePath && fs.existsSync(userBackgroundImagePath)) {
+                fs.unlinkSync(userBackgroundImagePath);
+            }
+            } catch (fsError) {
+                console.error("Error deleting uploaded images: ", fsError);
             }
             console.error("Error during registration: ", error);
             return res.status(500).send({ message: "เกิดความผิดปกติบางอย่าง โปรดลองใหม่อีกครั้งภายหลัง" });

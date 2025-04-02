@@ -17,7 +17,12 @@ const getMovieByID = async (req, res)  => {
                 {
                     model: db.Actor, // เชื่อมกับ Actor
                     through: { attributes: [] }, // ไม่ดึงข้อมูลจากตารางกลาง Act
-                    attributes: ['id', 'actorname', 'actorimagePath']
+                    attributes: ['id', 'actorname', 'actorimagePath', 'role', 'country']
+                },
+                {
+                    model: db.Genre, // ดึง Genre ที่เกี่ยวข้อง
+                    through: { attributes: [] }, // ถ้ามีตารางกลาง เช่น MovieGenre
+                    attributes: ['id', 'genreName'] 
                 }
             ]
         });
@@ -30,6 +35,7 @@ const getMovieByID = async (req, res)  => {
         res.status(500).send({ message: "Error fetching movies" });
     }
 };
+
 const getMovieByRank = async (req, res)  => {
     try {
         const topMovies = await db.Movie.findAll({
@@ -58,7 +64,7 @@ const deleteMovies = async (req, res) => {
 
 const createMovies = async (req, res) => {
     try {
-        const { title, engTitle, date, description, Atcinema, age, lang, trailerUrl } = req.body;
+        const { title, engTitle, date, description, Atcinema, age, lang, trailerUrl, genreIds } = req.body;
         console.log('Uploaded Files:', req.files); // ตรวจสอบไฟล์ที่อัปโหลดเข้ามา
         // ตรวจสอบว่า Multer อัปโหลดไฟล์สำเร็จหรือไม่
         const posterimagePath = req.files['posterimagePath']
@@ -82,6 +88,40 @@ const createMovies = async (req, res) => {
             lang: JSON.stringify(lang),
             trailerUrl
         });
+
+        console.log("ประเภทหนัง", genreIds);
+        let parsedGenreIds = genreIds;
+        if (typeof parsedGenreIds === "string") {
+            try {
+                parsedGenreIds = JSON.parse(parsedGenreIds);
+            } catch (error) {
+                console.error("Error parsing genreIds:", error);
+                return res.status(400).json({ message: "รูปแบบ genreIds ไม่ถูกต้อง" })
+            }
+        }
+
+        // ✅ ตรวจสอบว่าข้อมูลที่แปลงแล้วเป็นอาร์เรย์
+        if (!Array.isArray(parsedGenreIds)) {
+            return res.status(400).json({ message: "genreIds ต้องเป็นอาร์เรย์" });
+        }
+
+        // ✅ เช็คว่ามีหนังที่เลือกหรือไม่
+        if (parsedGenreIds.length > 0) {
+            console.log("Genre IDs to associate:", parsedGenreIds);
+            
+            const genres = await db.Genre.findAll({
+                where: { id: { [Op.in]: parsedGenreIds } }
+            });
+
+            console.log("Genres found:", genres.map(m => m.id));
+
+            if (genres.length > 0) {
+                await newMovie.addGenres(genres);
+                console.log("Genres linked to actor successfully!");
+            } else {
+                console.log("No matching genres found.");
+            }
+        }
 
         res.status(201).json({ message: "เพิ่มภาพยนตร์สำเร็จ!", movie: newMovie });
     } catch (error) {
@@ -111,7 +151,7 @@ const createMovies = async (req, res) => {
 const updateMovies = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, engTitle, date, description, Atcinema, age, lang, trailerUrl } = req.body;
+        const { title, engTitle, date, description, Atcinema, age, lang, trailerUrl, genreIds } = req.body;
 
         const movie = await db.Movie.findByPk(id);
         if (!movie) {
@@ -146,17 +186,62 @@ const updateMovies = async (req, res) => {
         }
 
         await movie.update({
-            title,
-            engTitle,
-            date,
-            description,
-            Atcinema: Atcinema === 'true',
-            age,
-            lang: JSON.stringify(lang || []),
+            title: title || movie.title,  // ถ้า title เป็น undefined ให้ใช้ค่าของเดิม
+            engTitle: engTitle || movie.engTitle,
+            date: date || movie.date,
+            description: description || movie.description,
+            Atcinema: Atcinema === 'true', // เช็คค่า Atcinema ให้เป็น boolean
+            age: age || movie.age,
+            lang: JSON.stringify(lang || JSON.parse(movie.lang)), // ตรวจสอบค่าภาษา
             posterimagePath,
             backgroundimagePath: JSON.stringify(backgroundimagePath),
-            trailerUrl
-        })
+            trailerUrl: trailerUrl || movie.trailerUrl
+        });
+
+        let parsedGenreIds = genreIds
+        console.log("ประเภทหนัง", parsedGenreIds);
+        if (typeof parsedGenreIds === "string") {
+            try {
+                parsedGenreIds = JSON.parse(parsedGenreIds);
+            } catch (error) {
+                console.error("Error parsing genreIds:", error);
+                return res.status(400).json({ message: "รูปแบบ genreIds ไม่ถูกต้อง" })
+            }
+        }
+
+        // ✅ ตรวจสอบว่าข้อมูลที่แปลงแล้วเป็นอาร์เรย์
+        if (!Array.isArray(parsedGenreIds)) {
+            return res.status(400).json({ message: "genreIds ต้องเป็นอาร์เรย์" });
+        }
+
+        if (Array.isArray(parsedGenreIds)) {
+            parsedGenreIds = parsedGenreIds.flatMap(item => {
+                try {
+                    return JSON.parse(item); // แปลง JSON string เป็นอาร์เรย์จริง
+                } catch (error) {
+                    return item.split(',').map(Number); // แยก string แล้วแปลงเป็นตัวเลข
+                }
+            });
+        }
+          
+        // ✅ เช็คว่ามีหนังที่เลือกหรือไม่
+        if (parsedGenreIds.length > 0) {
+            console.log("Genre IDs to associate:", parsedGenreIds);
+            
+            const genres = await db.Genre.findAll({
+                where: { id: { [Op.in]: parsedGenreIds } }
+            });
+
+            console.log("Genres found:", genres.map(m => m.id));
+
+            if (genres.length > 0) {
+                await movie.setGenres(genres);
+                console.log("Genres linked to actor successfully!");
+            } else {
+                console.log("No matching genres found.");
+            }
+        }
+
         res.status(200).json({message:"แก้ไขภาพยนตร์สำเร็จ!", movie})
     } catch (error) {
         try {
