@@ -9,5 +9,11 @@ module.exports = (sequelize, DataTypes) => {
         timestamps: false,
     });
 
+    Playlist.associate = (models) => {
+        Playlist.belongsTo(models.User);
+        Playlist.belongsToMany(models.Movie, { through: models.PlaylistItem });
+    };
+
+
     return Playlist;
 };

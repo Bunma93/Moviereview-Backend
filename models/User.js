@@ -54,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
 
     User.associate = (models) => {
         User.hasMany(models.Comment, { foreignKey: "UserId" });
-        User.belongsToMany(models.Movie, { through: models.Playlist});
+        User.hasMany(models.Playlist, { foreignKey: "UserId" })
         User.belongsToMany(models.Movie, { through: models.Search});
     };
 

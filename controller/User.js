@@ -57,7 +57,9 @@ const registerUser = async (req, res) => {
 
     try {
             const { username, name, email, password, tel, age, } = req.body;
-            userimagePath = req.file ? req.file.path : null; // ดึง path ของรูปภาพที่อัปโหลด
+            if (req.files && req.files['userimagePath']) {
+                userimagePath = req.files['userimagePath'][0].path;
+            }
             if (req.files && req.files['userBackgroundImagePath']) {
                 userBackgroundImagePath = req.files['userBackgroundImagePath'][0].path;
             }
@@ -69,6 +71,7 @@ const registerUser = async (req, res) => {
             // ตรวจสอบว่าข้อมูลครบถ้วน
             if (!username || !name || !email || !password || !tel || !age) {
                 if (userimagePath) fs.unlinkSync(userimagePath); // ลบไฟล์ออก
+                if (userBackgroundImagePath) fs.unlinkSync(userBackgroundImagePath); // ลบไฟล์ออก
                 return res.status(400).send({ message: "กรุณากรอกข้อมูลให้ครบ" });
             }
 
@@ -76,23 +79,27 @@ const registerUser = async (req, res) => {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 if (userimagePath) fs.unlinkSync(userimagePath); // ลบไฟล์ออก
+                if (userBackgroundImagePath) fs.unlinkSync(userBackgroundImagePath); // ลบไฟล์ออก
                 return res.status(400).send({ message: "รูปแบบ Email ไม่ถูกต้อง" });
             }
 
             if (targetUser) {
                 // ลบรูปที่อัปโหลดในกรณี Username ซ้ำ
                 if (userimagePath) fs.unlinkSync(userimagePath); // ลบไฟล์ออก
+                if (userBackgroundImagePath) fs.unlinkSync(userBackgroundImagePath); // ลบไฟล์ออก
                 return res.status(400).send({ message: "Username นี้ถูกใช้แล้ว" });
               }
           
             if (targetEmail) {
                 // ลบรูปที่อัปโหลดในกรณี Email ซ้ำ
                 if (userimagePath) fs.unlinkSync(userimagePath);
+                if (userBackgroundImagePath) fs.unlinkSync(userBackgroundImagePath); // ลบไฟล์ออก
             return res.status(400).send({ message: "Email นี้ถูกใช้แล้ว" });
             }
             // ตรวจสอบความยาวของ password
             if (password.length < 8) {
                 if (userimagePath) fs.unlinkSync(userimagePath); // ลบไฟล์ออก
+                if (userBackgroundImagePath) fs.unlinkSync(userBackgroundImagePath); // ลบไฟล์ออก
                 return res.status(400).send({ message: "Password ต้องมีอย่างน้อย 8 ตัวอักษร" });
             }
                 //สร้าง salt
