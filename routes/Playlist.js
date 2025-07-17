@@ -7,5 +7,7 @@ const authentication = passport.authenticate("jwt", { session: false});
 
 router.post('/create',authentication, playlistController.createPlaylist);
 router.get('/myplaylist', authentication, playlistController.getPlaylistById);
+router.put('/update/:id', authentication, playlistController.updatePlaylist);
+router.delete("/:id", authentication, playlistController.deletePlaylist);
 
 module.exports = router;

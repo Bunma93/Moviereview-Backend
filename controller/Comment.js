@@ -10,6 +10,7 @@ const getAllComment =  async (req, res)  => {
         if (!MovieId) {
             return res.status(400).json({ message: "MovieId is required" });
         }
+
         const allComment = await db.Comment.findAll({
             where: { MovieId: MovieId }, // กรองคอมเมนต์ตาม MovieId
             include: [{
@@ -19,16 +20,40 @@ const getAllComment =  async (req, res)  => {
         });
         res.status(200).json(allComment);
         
-    }catch(error) {
+    } catch(error) {
         console.error("Error fetching comments:", error);
         res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงคอมเมนต์" });
     }
 
 };
 
+const getCommentById = async (req, res) => {
+    try {
+        const commentByID = await db.Comment.findAll({
+            where: {UserId: req.user.id},
+            include: [{
+                model:db.User,
+                attributes: ['id','name','userimagePath']
+            },
+            {
+                model: db.Movie,
+                attributes: ['id', 'title', 'posterimagePath']
+            }]
+        });
+        res.status(200).json(commentByID);
+
+    } catch(error) {
+        console.error("Error fetching comments:", error);
+        res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงคอมเมนต์" });
+    }
+}
+
 const deleteComment = async (req, res) => {
     try {
         const { id } = req.params;
+        const UserId = req.user.id;
+        const UserRole = req.user.role;
+        console.log("ลบคอมเมนต์ ID:", id);
 
         // ตรวจสอบว่า id มีค่า
         if (!id) {
@@ -36,9 +61,17 @@ const deleteComment = async (req, res) => {
         }
 
         // ลบข้อมูล
-        const deletedRows = await db.Comment.destroy({
+        let deletedRows;
+
+        if (UserRole === 'admin') {
+            deletedRows = await db.Comment.destroy({
             where: { id: id }
-        });
+            })
+        } else {
+            deletedRows = await db.Comment.destroy({
+            where: { id: id, UserId: UserId }
+            })
+        };
 
         // ตรวจสอบว่ามีการลบข้อมูลสำเร็จหรือไม่
         if (deletedRows === 0) {
@@ -87,8 +120,36 @@ const createComment = async (req, res) => {
     }
 }
 
+const updateComment = async (req ,res) => {
+    try {
+        const { id } = req.params;
+        const { commentText, ratingScore } = req.body;
+        const UserId = req.user.id;
+
+         const comment = await db.Comment.findOne({
+            where: { id, UserId }
+        });
+
+        if (!comment) {
+            return res.status(404).json({ message: "ไม่พบคอมเมนต์ หรือไม่มีสิทธิ์แก้ไข" });
+        }
+
+       await db.Comment.update(
+            { commentText, ratingScore },
+            { where: { id, UserId } }
+        );
+
+        return res.status(201).json({ message: "แก้ไขคอมเม้นสำเร็จ"})
+    } catch (err) {
+        console.log("เกิดความผิดพลาดในการแก้ไขคอมเม้น", err);
+        return res.status(500).json({ message: "เกิดความผิดพลาดในการแก้ไขคอมเม้น"});
+    }
+}
+
 module.exports = {
     getAllComment,
     createComment,
-    deleteComment
+    deleteComment,
+    getCommentById,
+    updateComment
 };
