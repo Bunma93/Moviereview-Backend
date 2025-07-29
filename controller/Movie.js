@@ -2,7 +2,7 @@ const { sequelize } = require('../models');
 const db = require('../models');
 const fs = require('fs');
 const path = require('path'); 
-const { Op } = require('sequelize');
+const { Op, fn, col, literal } = require('sequelize');
 
 const getAllMovies = async (req, res)  => {
     const allMovies  = await db.Movie.findAll();
@@ -40,11 +40,27 @@ const getMovieByRank = async (req, res)  => {
     try {
         const topMovies = await db.Movie.findAll({
             where: { rank: { [Op.ne]: null } },
-            order: [["rank","ASC"]] // เรียงจากอันดับ 1 ขึ้นไป
+            order: [["rank","ASC"]], // เรียงจากอันดับ 1 ขึ้นไป
+            include: [
+                {
+                model: db.Comment,
+                attributes: [],
+                },
+            ],
+            attributes: {
+                include: [
+                    [fn("AVG", col("Comments.ratingScore")), "averageRating"],
+                    [fn("COUNT", col("Comments.id")), "reviewCount"]
+                ]
+    
+            },
+             group: ['Movie.id'],
+             raw: true,
         });
         
         res.status(200).json(topMovies);
     } catch (error) {
+        console.error("🔥 SERVER ERROR:", error);
         res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูล" });
     }
 };
